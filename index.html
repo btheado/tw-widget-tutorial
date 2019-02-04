@@ -383,6 +383,8 @@ Error message and password prompt
 
 <li>Hello World widget tutorial</li>
 
+<li>hello-attribute.js</li>
+
 <li>hello.js</li>
 
 <li>hellodomwidget.js</li>
@@ -411,7 +413,11 @@ Error message and password prompt
 
 <li>Undefined widget tutorial</li>
 
-<li>Widget attributes tutorial</li>
+<li>Widget attributes demo I</li>
+
+<li>Widget attributes tutorial part I</li>
+
+<li>Widget attributes tutorial part II</li>
 
 <li>Widget refresh demo I</li>
 
@@ -9322,7 +9328,7 @@ Error message and password prompt
     }
 }</pre>
 </div>
-<div created="20190202144324068" modified="20190202144554742" title="$:/DefaultTiddlers">
+<div created="20190202144324068" modified="20190204032115801" title="$:/DefaultTiddlers">
 <pre>About
 [[Undefined widget tutorial]]
 [[Do nothing widget tutorial]]
@@ -9330,7 +9336,8 @@ Error message and password prompt
 [[Widget refresh tutorial part I]]
 [[Widget refresh tutorial part II]]
 [[Widget refresh tutorial part III]]
-[[Widget attributes tutorial]]
+[[Widget attributes tutorial part I]]
+[[Widget attributes tutorial part II]]
 [[3rd party library tutorial part I]]
 [[3rd party library tutorial part II]]
 [[Child widgets tutorial]]</pre>
@@ -9805,7 +9812,7 @@ Error message and password prompt
 <div created="20190129012404389" modified="20190202160808068" title="$:/state/tab/sidebar--595412856">
 <pre>$:/core/ui/SideBar/Recent</pre>
 </div>
-<div created="20190202160557355" list="About [[Undefined widget tutorial]] [[Do nothing widget tutorial]] [[Hello World widget tutorial]] [[Widget refresh tutorial part I]] [[Widget refresh tutorial part II]] [[Widget refresh tutorial part III]] [[Widget attributes tutorial]] [[3rd party library tutorial part I]] [[3rd party library tutorial part II]] [[Child widgets tutorial]]" modified="20190202161140822" title="$:/StoryList">
+<div created="20190204013925920" list="$:/ControlPanel [[Widget attributes tutorial part II]] [[Widget refresh demo III]] [[Widget attributes tutorial part I]] [[3rd party library tutorial part I]] [[Child widgets tutorial]]" modified="20190204032059102" title="$:/StoryList">
 <pre></pre>
 </div>
 <div created="20190131235200856" modified="20190201031036638" title="$:/temp/advancedsearch">
@@ -10860,6 +10867,56 @@ The code for importing the core widget class remains, but now we also have code 
 {{Hello World demo}}
 </pre>
 </div>
+<div created="20190204020011193" modified="20190204030332147" module-type="widget" tags="" title="hello-attribute.js" type="application/javascript">
+<pre>/*\
+
+Hello, World widget
+
+\*/
+(function(){
+
+/*jslint node: true, browser: true */
+/*global $tw: false */
+&quot;use strict&quot;;
+
+var Widget = require(&quot;$:/core/modules/widgets/widget.js&quot;).widget;
+
+var MyWidget = function(parseTreeNode,options) {
+	this.initialise(parseTreeNode,options);
+};
+
+/*
+Inherit from the base widget class
+*/
+MyWidget.prototype = new Widget();
+
+/*
+Render this widget into the DOM
+*/
+MyWidget.prototype.render = function(parent,nextSibling) {
+	this.parentDomNode = parent;
+    this.computeAttributes();
+    var message = this.getAttribute(&quot;message&quot;, &quot;World&quot;);
+	var textNode = this.document.createTextNode(&quot;Hello, &quot; + message + &quot;!&quot;);
+	parent.insertBefore(textNode,nextSibling);
+	this.domNodes.push(textNode);
+};
+  
+/*
+A widget with optimized performance will selectively refresh, but here we refresh always
+*/
+MyWidget.prototype.refresh = function(changedTiddlers) {
+  // Regenerate and rerender the widget and
+  // replace the existing DOM node
+  this.refreshSelf();
+  return true;
+};
+
+exports.hello = MyWidget;
+
+})();
+</pre>
+</div>
 <div created="20190201114558816" modified="20190201224846870" module-type="widget" tags="" title="hello.js" type="application/javascript">
 <pre>/*\
 
@@ -11225,8 +11282,98 @@ Renders as:
 
 Since we haven't written the code, the attempt to render the widget gives an undefined widget error. So we will know the donothing code accomplishes something if we don't get the undefined widget error when rendering.</pre>
 </div>
-<div created="20190202035425715" modified="20190202155904407" tags="" title="Widget attributes tutorial">
-<pre>TODO</pre>
+<div created="20190204020507195" modified="20190204031520013" tags="" title="Widget attributes demo I">
+<pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
+&lt;$list name=refresh filter=[[hello-attribute.js]get[text]]&gt;
+&lt;$innerwiki width=&quot;600&quot; height=&quot;400&quot; style=&quot;width:100%;&quot;&gt;
+	&lt;$data title=&quot;$:/DefaultTiddlers&quot; text=&quot;[[hello world widget]]&quot;/&gt;
+&lt;$data $tiddler=hello-attribute.js/&gt;
+	&lt;$data title=&quot;hello world widget&quot; text=&quot;&quot;&quot;
+```
+&lt;$hello/&gt;
+```
+
+Renders as:
+
+&lt;$hello/&gt;
+
+---
+
+```
+&lt;$hello message=&quot;pale blue dot&quot;/&gt;
+```
+
+Renders as:
+
+&lt;$hello message=&quot;pale blue dot&quot;/&gt;
+
+---
+
+&lt;$edit-text focus=yes tiddler=test tag=input/&gt;
+
+```
+&lt;$hello message={{test!!text}}/&gt;
+```
+
+Renders as:
+
+&lt;$hello message={{test!!text}}/&gt;
+
+&quot;&quot;&quot;/&gt;
+
+  &lt;$data title=&quot;test&quot; text=&quot;Alice&quot;/&gt;
+
+&lt;/$innerwiki&gt;
+&lt;/$list&gt;</pre>
+</div>
+<div created="20190202035425715" modified="20190204031933167" tags="" title="Widget attributes tutorial part I">
+<pre>So far none of the widgets we've implemented have had any code for handling widget attributes A vast majority of useful widgets will need to support attributes in order to make them useful.
+
+As an example, let's change the Hello World widget so it can greet not just the world, but whoever/whatever the user wants. To do that we can add support for an attribute named `what` and call it like `&lt;$hello what=&quot;pale blue dot&quot;/&gt;`.
+
+The tiddlywiki widget class provides methods `computeAttributes` and `getAttribute` which can together be used by the widget code to discover what values are passed into the widget.
+
+The `computeAttributes` and `getAttribute` methods can be called like this (the second parameter to `getAttribute` will be used as the default value if the user doesn't provide that attribute in the widget call):
+
+```javascript
+this.computeAttributes();
+var message = this.getAttribute(&quot;message&quot;, &quot;World&quot;);
+```
+
+Then the `message` variable can be used to construct the Hello XXX string:
+
+```javascript
+var textNode = this.document.createTextNode(&quot;Hello, &quot; + message + &quot;!&quot;);
+```
+
+The original [[hello.js]] code only implements a `render` method. The `refresh` method is not needed because the output from the widget can never be different...it will always be &quot;Hello, World!&quot;.
+
+Even with a `message` attribute, you might think the `render` by itself is enough. After all, the value of the input parameter `message` can only be changed by modifying the wiki text which means the tiddler will be redisplayed from scratch.
+
+However, tiddlywiki has a syntax which allows parameter values to vary without modifying the wiki text. See https://tiddlywiki.com/#Widgets%20in%20WikiText for details. As one example, if the widget were called like `&lt;$hello message={{MyTiddler!!field}}/&gt;`, then every time the `field` field of `MyTiddler` were modified, only the `refresh` method would be called. Therefore, in order to get the widget display to update, the refresh method needs to be implemented.
+
+If the `computeAttributes` and `getAttribute` calls are placed in the `render` method and we can implement a performance unoptimized version of refresh as was done in [[Widget refresh tutorial part II]]:
+
+```javascript
+/*
+A widget with optimized performance will selectively refresh, but here we refresh always
+*/
+MyWidget.prototype.refresh = function(changedTiddlers) {
+  // Regenerate and rerender the widget and
+  // replace the existing DOM node
+  this.refreshSelf();
+  return true;
+};
+```
+
+The full code can be seen at [[hello-attribute.js]] and here is the result ([[Widget attributes demo I]]):
+
+{{Widget attributes demo I}}
+
+The third example above is the only one which requires the refresh method in order to behave properly.</pre>
+</div>
+<div created="20190204032023334" modified="20190204032057280" tags="" title="Widget attributes tutorial part II">
+<pre>TODO: refresh-optimized version of the attribute demo.</pre>
 </div>
 <div created="20190201233806976" modified="20190202133946660" tags="" title="Widget refresh demo I">
 <pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
@@ -11391,7 +11538,7 @@ Adding and removing dom elements is a relatively expensive operation, so if some
 
 ''Exercise'' - change the refresh method above to only call `refreshSelf` when the `changedTiddlers` input array contains `test` as one of its entries.</pre>
 </div>
-<div created="20190202034841184" modified="20190202155523016" tags="" title="Widget refresh tutorial part III">
+<div created="20190202034841184" modified="20190204015100563" tags="" title="Widget refresh tutorial part III">
 <pre>This tutorial is intended to demonstrate a few examples of when calls to the `refresh` method happen vs. when a widget is recreated from scratch.
 
 This is accomplished with a [[refreshcount.js]] widget which sets a counter to zero when the widget is created and increments the counter every time the `refresh` method is called. Here is the full code:
@@ -11409,9 +11556,9 @@ this.refreshCount++;
 In the following example (see [[Widget refresh demo III]] for the code), two instances of the `refreshcount` widget are created. One at the top level and the other inside a list widget whose filter results depend on the value in the `text` field of the `test` widget. The tiddler store can be modified in a few ways via two buttons and an input box:
 {{Widget refresh demo III}}
 
-Every time the first button is clicked, both counters increment, indicating the `refresh` method is being called. Clicking the second button modifies the tiddler itself and that causes both widgets to be recreated from scratch and the counters are thereby reset to zero.
-
-Typing text into the input box causes the counter in the standalone `refreshcount` widget to be incremented. But the other instance of the widget is embedded inside a list widget whose filter output depends on the value of the tiddler field which is being modified. This causes it to recreate its children from scratch and the counter is reset every time.</pre>
+* ''Modify a different tiddler'' - every time this button is clicked, both counters increment, indicating the `refresh` method is being called
+* ''Modify this tiddler'' - clicking this button modifies the tiddler itself and that causes both widgets to be recreated from scratch and the counters are thereby reset to zero.
+*  ''Text field of tiddler='test''' - typing text into the input box causes the counter in the standalone `refreshcount` widget to be incremented. But the other instance of the widget is embedded inside a list widget whose filter output depends on the value of the tiddler field which is being modified. This causes it to recreate its children from scratch and the counter is reset every time. So with every keystroke, the counter on the left is incremented, but the counter on the right goes to/stays at zero.</pre>
 </div>
 
 </div>
