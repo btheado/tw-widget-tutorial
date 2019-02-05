@@ -383,6 +383,8 @@ Error message and password prompt
 
 <li>Hello World widget tutorial</li>
 
+<li>hello-attribute-optimized.js</li>
+
 <li>hello-attribute.js</li>
 
 <li>hello.js</li>
@@ -414,6 +416,8 @@ Error message and password prompt
 <li>Undefined widget tutorial</li>
 
 <li>Widget attributes demo I</li>
+
+<li>Widget attributes demo II</li>
 
 <li>Widget attributes tutorial part I</li>
 
@@ -9803,20 +9807,20 @@ Error message and password prompt
 <div created="20190129012434806" modified="20190129012459670" title="$:/state/sidebar">
 <pre>yes</pre>
 </div>
-<div created="20190131235204356" modified="20190131235538991" title="$:/state/tab--1498284803">
-<pre>$:/core/ui/AdvancedSearch/Filter</pre>
+<div created="20190131235204356" modified="20190205025847196" title="$:/state/tab--1498284803">
+<pre>$:/core/ui/AdvancedSearch/System</pre>
 </div>
 <div created="20190129012412573" modified="20190202144306491" title="$:/state/tab-1749438307">
 <pre>$:/core/ui/ControlPanel/Info</pre>
 </div>
-<div created="20190129012404389" modified="20190202160808068" title="$:/state/tab/sidebar--595412856">
+<div created="20190129012404389" modified="20190205025100127" title="$:/state/tab/sidebar--595412856">
 <pre>$:/core/ui/SideBar/Recent</pre>
 </div>
-<div created="20190204013925920" list="$:/ControlPanel [[Widget attributes tutorial part II]] [[Widget refresh demo III]] [[Widget attributes tutorial part I]] [[3rd party library tutorial part I]] [[Child widgets tutorial]]" modified="20190204032059102" title="$:/StoryList">
+<div created="20190205024827069" list="[[Widget attributes tutorial part II]] [[Widget attributes demo I]] [[3rd party library tutorial part I]] [[3rd party library tutorial part II]] [[Child widgets tutorial]]" modified="20190205025902909" title="$:/StoryList">
 <pre></pre>
 </div>
-<div created="20190131235200856" modified="20190201031036638" title="$:/temp/advancedsearch">
-<pre>[enlist[hellodomwidget.js domwidget.js]get[text]]</pre>
+<div created="20190131235200856" modified="20190205025913332" title="$:/temp/advancedsearch">
+<pre></pre>
 </div>
 <div plugin-type="info" title="$:/temp/info-plugin" type="application/json">
 <pre>{
@@ -10867,6 +10871,60 @@ The code for importing the core widget class remains, but now we also have code 
 {{Hello World demo}}
 </pre>
 </div>
+<div created="20190205024846183" modified="20190205025110882" module-type="widget" tags="" title="hello-attribute-optimized.js" type="application/javascript">
+<pre>/*\
+
+Hello, World widget
+
+\*/
+(function(){
+
+/*jslint node: true, browser: true */
+/*global $tw: false */
+&quot;use strict&quot;;
+
+var Widget = require(&quot;$:/core/modules/widgets/widget.js&quot;).widget;
+
+var MyWidget = function(parseTreeNode,options) {
+	this.initialise(parseTreeNode,options);
+};
+
+/*
+Inherit from the base widget class
+*/
+MyWidget.prototype = new Widget();
+
+/*
+Render this widget into the DOM
+*/
+MyWidget.prototype.render = function(parent,nextSibling) {
+	this.parentDomNode = parent;
+    this.computeAttributes();
+    var message = this.getAttribute(&quot;message&quot;, &quot;World&quot;);
+	var textNode = this.document.createTextNode(&quot;Hello, &quot; + message + &quot;!&quot;);
+	parent.insertBefore(textNode,nextSibling);
+	this.domNodes.push(textNode);
+};
+
+/*
+Refresh if the attribute value changed since render
+*/
+MyWidget.prototype.refresh = function(changedTiddlers) {
+  // Find which attributes have changed
+  var changedAttributes = this.computeAttributes();
+  if (changedAttributes.message) {
+    this.refreshSelf();
+    return true;
+  } else {
+    return false;
+  }
+};
+
+exports.hello = MyWidget;
+
+})();
+</pre>
+</div>
 <div created="20190204020011193" modified="20190204030332147" module-type="widget" tags="" title="hello-attribute.js" type="application/javascript">
 <pre>/*\
 
@@ -11326,7 +11384,51 @@ Renders as:
 &lt;/$innerwiki&gt;
 &lt;/$list&gt;</pre>
 </div>
-<div created="20190202035425715" modified="20190204031933167" tags="" title="Widget attributes tutorial part I">
+<div created="20190205024953535" modified="20190205025028737" tags="" title="Widget attributes demo II">
+<pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
+&lt;$list name=refresh filter=[[hello-attribute-optimized.js]get[text]]&gt;
+&lt;$innerwiki width=&quot;600&quot; height=&quot;400&quot; style=&quot;width:100%;&quot;&gt;
+	&lt;$data title=&quot;$:/DefaultTiddlers&quot; text=&quot;[[hello world widget]]&quot;/&gt;
+&lt;$data $tiddler=hello-attribute-optimized.js/&gt;
+	&lt;$data title=&quot;hello world widget&quot; text=&quot;&quot;&quot;
+```
+&lt;$hello/&gt;
+```
+
+Renders as:
+
+&lt;$hello/&gt;
+
+---
+
+```
+&lt;$hello message=&quot;pale blue dot&quot;/&gt;
+```
+
+Renders as:
+
+&lt;$hello message=&quot;pale blue dot&quot;/&gt;
+
+---
+
+&lt;$edit-text focus=yes tiddler=test tag=input/&gt;
+
+```
+&lt;$hello message={{test!!text}}/&gt;
+```
+
+Renders as:
+
+&lt;$hello message={{test!!text}}/&gt;
+
+&quot;&quot;&quot;/&gt;
+
+  &lt;$data title=&quot;test&quot; text=&quot;Alice&quot;/&gt;
+
+&lt;/$innerwiki&gt;
+&lt;/$list&gt;</pre>
+</div>
+<div created="20190202035425715" modified="20190205023518575" tags="" title="Widget attributes tutorial part I">
 <pre>So far none of the widgets we've implemented have had any code for handling widget attributes A vast majority of useful widgets will need to support attributes in order to make them useful.
 
 As an example, let's change the Hello World widget so it can greet not just the world, but whoever/whatever the user wants. To do that we can add support for an attribute named `what` and call it like `&lt;$hello what=&quot;pale blue dot&quot;/&gt;`.
@@ -11352,7 +11454,7 @@ Even with a `message` attribute, you might think the `render` by itself is enoug
 
 However, tiddlywiki has a syntax which allows parameter values to vary without modifying the wiki text. See https://tiddlywiki.com/#Widgets%20in%20WikiText for details. As one example, if the widget were called like `&lt;$hello message={{MyTiddler!!field}}/&gt;`, then every time the `field` field of `MyTiddler` were modified, only the `refresh` method would be called. Therefore, in order to get the widget display to update, the refresh method needs to be implemented.
 
-If the `computeAttributes` and `getAttribute` calls are placed in the `render` method and we can implement a performance unoptimized version of refresh as was done in [[Widget refresh tutorial part II]]:
+If the `computeAttributes` and `getAttribute` calls are placed in the `render` method then we can implement a performance unoptimized version of refresh as was done in [[Widget refresh tutorial part II]]:
 
 ```javascript
 /*
@@ -11372,8 +11474,34 @@ The full code can be seen at [[hello-attribute.js]] and here is the result ([[Wi
 
 The third example above is the only one which requires the refresh method in order to behave properly.</pre>
 </div>
-<div created="20190204032023334" modified="20190204032057280" tags="" title="Widget attributes tutorial part II">
-<pre>TODO: refresh-optimized version of the attribute demo.</pre>
+<div created="20190205023543910" modified="20190205025620965" tags="" title="Widget attributes tutorial part II">
+<pre>This example will build on the previous one. The only modification will be to add a check to the `refresh` method. The `refreshSelf` will only be called if a change to the attributes is detected.
+
+The `computeAttributes` method returns a Javascript object containing properties for each attribute which has changed. So a check like `if (changedAttributes.attr1 || changedAttributes.attr2 || changedAttributes.attr3)` etc. can be used to detect the change.
+
+For this example, `message` is the only attribute implemented.
+
+```javascript
+/*
+Refresh if the attribute value changed since render
+*/
+MyWidget.prototype.refresh = function(changedTiddlers) {
+  // Find which attributes have changed
+  var changedAttributes = this.computeAttributes();
+  if (changedAttributes.message) {
+    this.refreshSelf();
+    return true;
+  } else {
+    return false;
+  }
+};
+```
+
+The full code can be seen at [[hello-attribute-optimized.js]] and here is the result ([[Widget attributes demo II]]):
+
+{{Widget attributes demo II}}
+
+The visible behavior here should be identical to the unoptimized behavior of the previous tutorial.</pre>
 </div>
 <div created="20190201233806976" modified="20190202133946660" tags="" title="Widget refresh demo I">
 <pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
