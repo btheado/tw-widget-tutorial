@@ -395,6 +395,12 @@ Error message and password prompt
 
 <li>HelloThere</li>
 
+<li>Htm demo</li>
+
+<li>htm.js</li>
+
+<li>htmlist.js</li>
+
 <li>Hyperscript demo 1a</li>
 
 <li>Hyperscript demo 1b</li>
@@ -9819,10 +9825,10 @@ Error message and password prompt
 <div created="20190129012412573" modified="20190206023637249" title="$:/state/tab-1749438307">
 <pre>$:/core/ui/ControlPanel/Info</pre>
 </div>
-<div created="20190129012404389" modified="20190209015644969" title="$:/state/tab/sidebar--595412856">
+<div created="20190129012404389" modified="20190209192547158" title="$:/state/tab/sidebar--595412856">
 <pre>$:/core/ui/SideBar/Recent</pre>
 </div>
-<div created="20190208031958574" list="[[Widget attributes tutorial part II]] hello-attribute-optimized.js hyperscriptnested.js [[Hyperscript demo 1b]] [[3rd party library tutorial part I]] [[3rd party library tutorial part II]] [[Child widgets tutorial]]" modified="20190209015033679" title="$:/StoryList">
+<div created="20190209192727672" list="[[3rd party library tutorial part I]] [[3rd party library tutorial part II]] htmlist.js [[Child widgets tutorial]]" modified="20190209192727672" title="$:/StoryList">
 <pre></pre>
 </div>
 <div created="20190131235200856" modified="20190205025913332" title="$:/temp/advancedsearch">
@@ -10669,7 +10675,7 @@ This plugin also requires the JSZip plugin ([[$:/plugins/tiddlywiki/jszip]]) to 
     }
 }</pre>
 </div>
-<div created="20190202035136481" modified="20190209015853341" tags="" title="3rd party library tutorial part I">
+<div created="20190202035136481" modified="20190209150842019" tags="" title="3rd party library tutorial part I">
 <pre>Often, the reason for wanting to write a TW widget is in order to  integrate functionality from 3rd party javascript projects. Some examples which would be useful to create widgets from:
 
 *[[Graphviz diagrams|http://mdaines.github.io/viz.js/]]
@@ -10702,38 +10708,60 @@ It is important that the [[hyperscript.js]] tiddler has the `module-type=library
 Note that this use of hyperscript's `h` function is not very impressive. Hyperscript doesn't start to shine compared to dom methods until a more complicated structure is introduced like this (example taken from the hyperscript readme):
 
 ```javascript
+var items = ['one', 'two', 'three'];
 var domNode =
     h('div#page',
       h('div#header',
         h('h1.classy', 'h', { style: {'background-color': '#22f'} })),
       h('div#menu', { style: {'background-color': '#2f2'} },
-        h('ul',
-          h('li', 'one'),
-          h('li', 'two'),
-          h('li', 'three'))),
-        h('h2', 'content title',  { style: {'background-color': '#f22'} }),
-        h('p',
-          &quot;so it's just like a templating engine,\n&quot;,
-          &quot;but easy to use inline with javascript\n&quot;),
-        h('p',
-          &quot;the intention is for this to be used to create\n&quot;,
-          &quot;reusable, interactive html widgets. &quot;));
+        h('ul', items.map(item =&gt; h('li', item)))),
+      h('h2', 'content title',  { style: {'background-color': '#f22'} }),
+      h('p',
+        &quot;so it's just like a templating engine,\n&quot;,
+        &quot;but easy to use inline with javascript\n&quot;),
+      h('p',
+        &quot;the intention is for this to be used to create\n&quot;,
+        &quot;reusable, interactive html widgets. &quot;));
 ```
 
 See [[hyperscriptnested.js]] for the full code. [[Hyperscript demo 1b]] shows the result:
 
 {{Hyperscript demo 1b}}
 
-Usually TW widgets are not internally creating complicated dom structures, so perhaps embedding hyperscript is not that useful. Also, using hyperscript in this way causes problems with nodejs usage.
+Usually TW widgets are not internally creating complicated dom structures, so perhaps embedding hyperscript is not that useful. However, as an example of how to embed a library, it is perfectly fine.
 
-This is because the dom node methods attached to `this.document` are actually tiddlywiki specific wrappers around the standard dom. When running under nodejs there is no browser and therefor, no dom. The TW dom wrappers allow the dom code to be called in nodejs. That is useful when you want to use the [[nodejs command|https://tiddlywiki.com/#Commands]] to do something like render your tiddlers to html.
+Also, using hyperscript in this way causes problems with nodejs usage. This is because the dom node methods attached to `this.document` are actually tiddlywiki specific wrappers around the standard dom. When running under nodejs there is no browser and therefore, no dom. The TW dom wrappers allow the dom code to be called in nodejs. That is useful when you want to use the [[nodejs command|https://tiddlywiki.com/#Commands]] to do something like render your tiddlers to html.
 
 But when the `h` function is called in nodejs, it will try to call the real dom which does not exist and it will throw an error. A modified version of hyperscript would be needed in order to use it successfully in nodejs.</pre>
 </div>
-<div created="20190202035254971" modified="20190202160458772" tags="" title="3rd party library tutorial part II">
-<pre>Use https://github.com/developit/htm with [[hyperscript|https://github.com/hyperhype/hyperscript]] backend to use javascript tagged templates to generate the dom.
+<div created="20190202035254971" modified="20190209194033788" tags="" title="3rd party library tutorial part II">
+<pre>Use https://github.com/developit/htm with [[hyperscript|https://github.com/hyperhype/hyperscript]] backend. This allows dom to be generated using [[javascript tagged templates|https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals]].
 
-TODO</pre>
+The full code is at [[htmlist.js]] with the key parts here:
+
+```javascript
+var h = require(&quot;hyperscript.js&quot;);
+var html = require(&quot;htm.js&quot;).bind(h);
+```
+
+```javascript
+var items = ['one', 'two', 'three'];
+var domNode = html`
+  &lt;div class=&quot;foo&quot;&gt;
+    &lt;h1&gt;Hi!&lt;/h1&gt;
+    &lt;p&gt;Here is a list of ${items.length} items:&lt;/p&gt;
+    &lt;ul&gt;
+      ${ items.map( item =&gt; html`
+        &lt;li&gt;${ item }&lt;/li&gt;
+      `)}
+    &lt;/ul&gt;
+  &lt;/div&gt;
+`
+```
+
+{{Htm demo}}
+
+Since this is still using hyperscript, the same problems mentioned in [[3rd party library tutorial part I]] will be seen here. In addition, javascript tagged templates probably do not work in browsers more than a few years old.</pre>
 </div>
 <div created="20190202035524804" modified="20190202163419199" tags="" title="About">
 <pre>This wiki provides step-by-step, interactive examples of how to write code for tiddlywiki widgets.
@@ -11159,6 +11187,82 @@ To try these examples under Node.js:
 Open `examples.html` to see the generated static HTML rendering.
 </pre>
 </div>
+<div created="20190209141553074" modified="20190209144442399" tags="" title="Htm demo">
+<pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
+&lt;$list name=refresh filter=[[htmlist.js]get[text]]&gt;
+&lt;$innerwiki width=&quot;600&quot; height=&quot;400&quot; style=&quot;width:100%;&quot;&gt;
+	&lt;$data title=&quot;$:/DefaultTiddlers&quot; text=&quot;[[htm widget example]]&quot;/&gt;
+    &lt;$data $tiddler=hyperscript.js/&gt;
+    &lt;$data $tiddler=htm.js/&gt;
+    &lt;$data $tiddler=htmlist.js/&gt;
+	&lt;$data title=&quot;htm widget example&quot; text=&quot;&quot;&quot;
+```
+&lt;$htmlist/&gt;
+```
+
+Renders as:
+
+&lt;$htmlist/&gt;
+&quot;&quot;&quot;/&gt;
+
+&lt;/$innerwiki&gt;
+&lt;/$list&gt;</pre>
+</div>
+<div created="20190209141357508" modified="20190209144112084" module-type="library" tags="" title="htm.js" type="application/javascript">
+<pre>/* Downloaded from https://cdn.jsdelivr.net/npm/htm@2.0.0/dist/htm.umd.js */
+!function(n,e){&quot;object&quot;==typeof exports&amp;&amp;&quot;undefined&quot;!=typeof module?module.exports=e():&quot;function&quot;==typeof define&amp;&amp;define.amd?define(e):n.htm=e()}(this,function(){var n={},e=JSON.stringify;var t=function(n){for(var t,i,c,o,r,f=0,u=&quot;return &quot;,s=&quot;&quot;,a=&quot;&quot;,h=0,l=&quot;&quot;,d=&quot;&quot;,g=&quot;&quot;,p=0,m=function(){c?9===f?(h++&amp;&amp;(u+=&quot;,&quot;),u+=&quot;h(&quot;+(a||e(s)),f=0):13===f||0===f&amp;&amp;&quot;...&quot;===s?(0===f?(g||(g=&quot;)&quot;,l=l?&quot;Object.assign(&quot;+l:&quot;Object.assign({}&quot;),l+=d+&quot;,&quot;+a,d=&quot;&quot;):o&amp;&amp;(l+=l?&quot;,&quot;+(d?&quot;&quot;:&quot;{&quot;):&quot;{&quot;,d=&quot;}&quot;,l+=e(o)+&quot;:&quot;,l+=a||(r||s)&amp;&amp;e(s)||&quot;true&quot;,o=&quot;&quot;),r=!1):0===f&amp;&amp;(f=13,o=s,s=a=&quot;&quot;,m(),f=0):(a||(s=s.replace(/^\s*\n\s*|\s*\n\s*$/g,&quot;&quot;)))&amp;&amp;(h++&amp;&amp;(u+=&quot;,&quot;),u+=a||e(s)),s=a=&quot;&quot;},v=0;v&lt;n.length;v++){v&gt;0&amp;&amp;(c||m(),a=&quot;$[&quot;+v+&quot;]&quot;,m());for(var y=0;y&lt;n[v].length;y++){if(i=n[v].charCodeAt(y),c){if(39===i||34===i){if(p===i){p=0;continue}if(0===p){p=i;continue}}if(0===p)switch(i){case 62:m(),47!==f&amp;&amp;(u+=l?&quot;,&quot;+l+d+g:&quot;,null&quot;),t&amp;&amp;(u+=&quot;)&quot;),c=0,l=&quot;&quot;,f=1;continue;case 61:f=13,r=!0,o=s,s=&quot;&quot;;continue;case 47:t||(t=!0,9!==f||s.trim()||(s=a=&quot;&quot;,f=47));continue;case 9:case 10:case 13:case 32:m(),f=0;continue}}else if(60===i){m(),c=1,g=d=l=&quot;&quot;,t=r=!1,f=9;continue}s+=n[v].charAt(y)}}return m(),Function(&quot;h&quot;,&quot;$&quot;,u)};return function(e){for(var i=&quot;.&quot;,c=0;c&lt;e.length;c++)i+=e[c].length+&quot;,&quot;+e[c];return(n[i]||(n[i]=t(e)))(this,arguments)}});</pre>
+</div>
+<div created="20190209141824460" modified="20190209144358557" module-type="widget" tags="" title="htmlist.js" type="application/javascript">
+<pre>/*\
+
+Example widget using htm + hyperscript
+
+\*/
+(function(){
+
+/*jslint node: true, browser: true */
+/*global $tw: false */
+&quot;use strict&quot;;
+
+var h = require(&quot;hyperscript.js&quot;);
+var html = require(&quot;htm.js&quot;).bind(h);
+var Widget = require(&quot;$:/core/modules/widgets/widget.js&quot;).widget;
+
+var MyWidget = function(parseTreeNode,options) {
+	this.initialise(parseTreeNode,options);
+};
+
+/*
+Inherit from the base widget class
+*/
+MyWidget.prototype = new Widget();
+
+/*
+Render this widget into the DOM
+*/
+MyWidget.prototype.render = function(parent,nextSibling) {
+	this.parentDomNode = parent;
+    var items = ['one', 'two', 'three'];
+    var domNode = html`
+      &lt;div class=&quot;foo&quot;&gt;
+        &lt;h1&gt;Hi!&lt;/h1&gt;
+        &lt;p&gt;Here is a list of ${items.length} items:&lt;/p&gt;
+        &lt;ul&gt;
+          ${ items.map( item =&gt; html`
+            &lt;li&gt;${ item }&lt;/li&gt;
+          `)}
+        &lt;/ul&gt;
+      &lt;/div&gt;
+    `
+	parent.insertBefore(domNode,nextSibling);
+	this.domNodes.push(domNode);
+};
+
+exports.htmlist = MyWidget;
+
+})();
+</pre>
+</div>
 <div created="20190208032108495" modified="20190208234512117" tags="" title="Hyperscript demo 1a">
 <pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
 &lt;$list name=refresh filter=[[hellohyperscript.js]get[text]]&gt;
@@ -11203,10 +11307,10 @@ Renders as:
 <pre>/* Retrieved via https://bundle.run/hyperscript@2.0.2 */
 !function(e){if(&quot;object&quot;==typeof exports&amp;&amp;&quot;undefined&quot;!=typeof module)module.exports=e();else if(&quot;function&quot;==typeof define&amp;&amp;define.amd)define([],e);else{(&quot;undefined&quot;!=typeof window?window:&quot;undefined&quot;!=typeof global?global:&quot;undefined&quot;!=typeof self?self:this).hyperscript=e()}}(function(){return function(){return function e(t,n,r){function i(f,s){if(!n[f]){if(!t[f]){var u=&quot;function&quot;==typeof require&amp;&amp;require;if(!s&amp;&amp;u)return u(f,!0);if(o)return o(f,!0);var l=new Error(&quot;Cannot find module '&quot;+f+&quot;'&quot;);throw l.code=&quot;MODULE_NOT_FOUND&quot;,l}var c=n[f]={exports:{}};t[f][0].call(c.exports,function(e){return i(t[f][1][e]||e)},c,c.exports,e,t,n,r)}return n[f].exports}for(var o=&quot;function&quot;==typeof require&amp;&amp;require,f=0;f&lt;r.length;f++)i(r[f]);return i}}()({1:[function(e,t,n){var r=e(&quot;browser-split&quot;),i=e(&quot;class-list&quot;),o=&quot;undefined&quot;==typeof window?e(&quot;html-element&quot;):window,f=o.document,s=o.Text;function u(){var e=[];function t(){var t=[].slice.call(arguments),n=null;function o(t){var u,a,p;if(null==t);else if(&quot;string&quot;==typeof t)n?n.appendChild(u=f.createTextNode(t)):(p=r(t,/([\.#]?[^\s#.]+)/),/^\.|#/.test(p[1])&amp;&amp;(n=f.createElement(&quot;div&quot;)),c(p,function(e){var t=e.substring(1,e.length);e&amp;&amp;(n?&quot;.&quot;===e[0]?i(n).add(t):&quot;#&quot;===e[0]&amp;&amp;n.setAttribute(&quot;id&quot;,t):n=f.createElement(e))}));else if(&quot;number&quot;==typeof t||&quot;boolean&quot;==typeof t||t instanceof Date||t instanceof RegExp)n.appendChild(u=f.createTextNode(t.toString()));else if(a=t,&quot;[object Array]&quot;==Object.prototype.toString.call(a))c(t,o);else if(l(t))n.appendChild(u=t);else if(t instanceof s)n.appendChild(u=t);else if(&quot;object&quot;==typeof t)for(var d in t)if(&quot;function&quot;==typeof t[d])/^on\w+/.test(d)?function(t,r){n.addEventListener?(n.addEventListener(t.substring(2),r[t],!1),e.push(function(){n.removeEventListener(t.substring(2),r[t],!1)})):(n.attachEvent(t,r[t]),e.push(function(){n.detachEvent(t,r[t])}))}(d,t):(n[d]=t[d](),e.push(t[d](function(e){n[d]=e})));else if(&quot;style&quot;===d)if(&quot;string&quot;==typeof t[d])n.style.cssText=t[d];else for(var h in t[d])!function(r,i){if(&quot;function&quot;==typeof i)n.style.setProperty(r,i()),e.push(i(function(e){n.style.setProperty(r,e)}));else var o=t[d][r].match(/(.*)\W+!important\W*$/);o?n.style.setProperty(r,o[1],&quot;important&quot;):n.style.setProperty(r,t[d][r])}(h,t[d][h]);else if(&quot;attrs&quot;===d)for(var g in t[d])n.setAttribute(g,t[d][g]);else&quot;data-&quot;===d.substr(0,5)?n.setAttribute(d,t[d]):n[d]=t[d];else if(&quot;function&quot;==typeof t){g=t();n.appendChild(u=l(g)?g:f.createTextNode(g)),e.push(t(function(e){l(e)&amp;&amp;u.parentElement?(u.parentElement.replaceChild(e,u),u=e):u.textContent=e}))}return u}for(;t.length;)o(t.shift());return n}return t.cleanup=function(){for(var t=0;t&lt;e.length;t++)e[t]();e.length=0},t}function l(e){return e&amp;&amp;e.nodeName&amp;&amp;e.nodeType}function c(e,t){if(e.forEach)return e.forEach(t);for(var n=0;n&lt;e.length;n++)t(e[n],n)}(t.exports=u()).context=u},{&quot;browser-split&quot;:2,&quot;class-list&quot;:3,&quot;html-element&quot;:5}],2:[function(e,t,n){var r,i,o;t.exports=(i=String.prototype.split,o=/()??/.exec(&quot;&quot;)[1]===r,function(e,t,n){if(&quot;[object RegExp]&quot;!==Object.prototype.toString.call(t))return i.call(e,t,n);var f,s,u,l,c=[],a=(t.ignoreCase?&quot;i&quot;:&quot;&quot;)+(t.multiline?&quot;m&quot;:&quot;&quot;)+(t.extended?&quot;x&quot;:&quot;&quot;)+(t.sticky?&quot;y&quot;:&quot;&quot;),p=0;for(t=new RegExp(t.source,a+&quot;g&quot;),e+=&quot;&quot;,o||(f=new RegExp(&quot;^&quot;+t.source+&quot;$(?!\\s)&quot;,a)),n=n===r?-1&gt;&gt;&gt;0:n&gt;&gt;&gt;0;(s=t.exec(e))&amp;&amp;!((u=s.index+s[0].length)&gt;p&amp;&amp;(c.push(e.slice(p,s.index)),!o&amp;&amp;s.length&gt;1&amp;&amp;s[0].replace(f,function(){for(var e=1;e&lt;arguments.length-2;e++)arguments[e]===r&amp;&amp;(s[e]=r)}),s.length&gt;1&amp;&amp;s.index&lt;e.length&amp;&amp;Array.prototype.push.apply(c,s.slice(1)),l=s[0].length,p=u,c.length&gt;=n));)t.lastIndex===s.index&amp;&amp;t.lastIndex++;return p===e.length?!l&amp;&amp;t.test(&quot;&quot;)||c.push(&quot;&quot;):c.push(e.slice(p)),c.length&gt;n?c.slice(0,n):c})},{}],3:[function(e,t,n){var r=e(&quot;indexof&quot;);function i(e){return!!e}t.exports=function(e){var t=e.classList;if(t)return t;var n={add:o,remove:f,contains:s,toggle:function(e){return s(e)?(f(e),!1):(o(e),!0)},toString:function(){return e.className},length:0,item:function(e){return u()[e]||null}};return n;function o(e){var t=u();r(t,e)&gt;-1||(t.push(e),l(t))}function f(e){var t=u(),n=r(t,e);-1!==n&amp;&amp;(t.splice(n,1),l(t))}function s(e){return r(u(),e)&gt;-1}function u(){var t=e.className;return function(e,t){for(var n=[],r=0;r&lt;e.length;r++)t(e[r])&amp;&amp;n.push(e[r]);return n}(t.split(&quot; &quot;),i)}function l(t){var r=t.length;e.className=t.join(&quot; &quot;),n.length=r;for(var i=0;i&lt;t.length;i++)n[i]=t[i];delete t[r]}}},{indexof:4}],4:[function(e,t,n){var r=[].indexOf;t.exports=function(e,t){if(r)return e.indexOf(t);for(var n=0;n&lt;e.length;++n)if(e[n]===t)return n;return-1}},{}],5:[function(e,t,n){},{}]},{},[1])(1)});</pre>
 </div>
-<div created="20190209013455173" modified="20190209013855945" module-type="widget" tags="" title="hyperscriptnested.js" type="application/javascript">
+<div created="20190209013455173" modified="20190209145901807" module-type="widget" tags="" title="hyperscriptnested.js" type="application/javascript">
 <pre>/*\
 
-Hello, World widget using hyperscript
+Nested hyperscript elements widget
 
 \*/
 (function(){
@@ -11232,34 +11336,23 @@ Render this widget into the DOM
 */
 MyWidget.prototype.render = function(parent,nextSibling) {
 	this.parentDomNode = parent;
+    /* code modified from the example at https://github.com/hyperhype/hyperscript/blob/master/README.md */
+    var items = ['one', 'two', 'three'];
 	var domNode =
         h('div#page',
           h('div#header',
             h('h1.classy', 'h', { style: {'background-color': '#22f'} })),
           h('div#menu', { style: {'background-color': '#2f2'} },
-            h('ul',
-              h('li', 'one'),
-              h('li', 'two'),
-              h('li', 'three'))),
-            h('h2', 'content title',  { style: {'background-color': '#f22'} }),
-            h('p',
-              &quot;so it's just like a templating engine,\n&quot;,
-              &quot;but easy to use inline with javascript\n&quot;),
-            h('p',
-              &quot;the intention is for this to be used to create\n&quot;,
-		      &quot;reusable, interactive html widgets. &quot;));
+            h('ul', items.map(item =&gt; h('li', item)))),
+          h('h2', 'content title',  { style: {'background-color': '#f22'} }),
+          h('p',
+            &quot;so it's just like a templating engine,\n&quot;,
+            &quot;but easy to use inline with javascript\n&quot;),
+          h('p',
+            &quot;the intention is for this to be used to create\n&quot;,
+		    &quot;reusable, interactive html widgets. &quot;));
 	parent.insertBefore(domNode,nextSibling);
 	this.domNodes.push(domNode);
-};
-
-
-/*
-A widget with optimized performance will selectively refresh, but here we refresh always
-*/
-MyWidget.prototype.refresh = function(changedTiddlers) {
-  // Regenerate and rerender the widget and replace the existing DOM node
-  this.refreshSelf();
-  return true;
 };
 
 exports.hyperscriptnested = MyWidget;
