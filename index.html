@@ -9825,8 +9825,8 @@ Error message and password prompt
 <div created="20190129012412573" modified="20190206023637249" title="$:/state/tab-1749438307">
 <pre>$:/core/ui/ControlPanel/Info</pre>
 </div>
-<div created="20190129012404389" modified="20190209192547158" title="$:/state/tab/sidebar--595412856">
-<pre>$:/core/ui/SideBar/Recent</pre>
+<div created="20190129012404389" modified="20190217014654076" title="$:/state/tab/sidebar--595412856">
+<pre>$:/core/ui/SideBar/Open</pre>
 </div>
 <div created="20190209192727672" list="[[3rd party library tutorial part I]] [[3rd party library tutorial part II]] htmlist.js [[Child widgets tutorial]]" modified="20190209192727672" title="$:/StoryList">
 <pre></pre>
@@ -11733,10 +11733,10 @@ The full code can be seen at [[hello-attribute.js]] and here is the result ([[Wi
 
 The third example above is the only one which requires the refresh method in order to behave properly.</pre>
 </div>
-<div created="20190205023543910" modified="20190205025620965" tags="" title="Widget attributes tutorial part II">
+<div created="20190205023543910" modified="20190217012121130" tags="" title="Widget attributes tutorial part II">
 <pre>This example will build on the previous one. The only modification will be to add a check to the `refresh` method. The `refreshSelf` will only be called if a change to the attributes is detected.
 
-The `computeAttributes` method returns a Javascript object containing properties for each attribute which has changed. So a check like `if (changedAttributes.attr1 || changedAttributes.attr2 || changedAttributes.attr3)` etc. can be used to detect the change.
+The `computeAttributes` method returns a Javascript object containing properties for each attribute which has changed. So a check like `if (changedAttributes.attr1 || changedAttributes.attr2 || changedAttributes.attr3)` etc. can be used to detect the change.  See the refresh method in [[$:/core/modules/widgets/view.js]] for an example showing the check for multiple attributes.
 
 For this example, `message` is the only attribute implemented.
 
@@ -11923,7 +11923,7 @@ The `view` widget stays in sync with the input box because it has a properly imp
 
 See the next example for an implementation of the `refresh` method for the `tiddlerfield` widget.</pre>
 </div>
-<div created="20190201232910076" modified="20190217005815291" tags="" title="Widget refresh tutorial part II">
+<div created="20190201232910076" modified="20190217014335419" tags="" title="Widget refresh tutorial part II">
 <pre>This example is like [[Widget refresh tutorial part I]] except the widget output will be automatically refreshed when the tiddler field changes.
 
 [[tiddlerfield.js]] is the same as [[tiddlerfield-norefresh.js]], except this `refresh` method is added:
@@ -11954,7 +11954,7 @@ In tiddlywiki the tiddler store is used for everything and almost any interactio
 
 Adding and removing dom elements is a relatively expensive operation, so if someone has used the list widget to create a few hundred instances of this widget, then such tiddlywiki interactions might gain a noticable lag. Therefore, it usually makes sense to avoid modifying the dom when possible by writing a smarter `refresh` method. 
 
-''Exercise'' - change the refresh method above to only call `refreshSelf` when the `changedTiddlers` input array contains `test` as one of its entries.</pre>
+''Exercise'' - change the refresh method above to only call `refreshSelf` when the `changedTiddlers` input array contains `test` as one of its entries (Hint: see the refresh method in $:/core/modules/widgets/view.js for an example).</pre>
 </div>
 <div created="20190202034841184" modified="20190204015100563" tags="" title="Widget refresh tutorial part III">
 <pre>This tutorial is intended to demonstrate a few examples of when calls to the `refresh` method happen vs. when a widget is recreated from scratch.
