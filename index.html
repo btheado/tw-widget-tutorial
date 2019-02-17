@@ -10946,14 +10946,14 @@ Renders as:
 &lt;/$innerwiki&gt;
 &lt;/$list&gt;</pre>
 </div>
-<div created="20190201232200698" modified="20190202145622596" tags="" title="Hello World widget tutorial">
+<div created="20190201232200698" modified="20190216175629825" tags="" title="Hello World widget tutorial">
 <pre>Now let's create a widget which actually has output.
 
 When tiddlywiki encounters a widget definition like `&lt;$hello&gt;` it will create an object which is an instance of the class which is exported by the widget code. 
 
 In addition to creating an instance of the class, tiddlywiki will call the render method of the resulting object. The render method is expected to create a dom node which will be display in place of the widget.
 
-In the `donothing` example the core widget was exported. The core widget class doesn't have a render method which creates a dom node and that's why there is no output. In order to get our some output, we must create our own widget class which inherits from the core `Widget` class. This class will define a render method which will display the hello world message.
+In the `donothing` example the core widget was exported. The core widget class doesn't have a render method which creates a dom node and that's why there is no output. Getting output requires writing a widget class which inherits from the core `Widget` class. Code in the render method of this class will display the hello world message.
 
 The [[hello.js]] tiddler has code which accomplishes that:
 {{hello.js}}
@@ -11762,7 +11762,7 @@ The full code can be seen at [[hello-attribute-optimized.js]] and here is the re
 
 The visible behavior here should be identical to the unoptimized behavior of the previous tutorial.</pre>
 </div>
-<div created="20190201233806976" modified="20190202133946660" tags="" title="Widget refresh demo I">
+<div created="20190201233806976" modified="20190216190046578" tags="" title="Widget refresh demo I">
 <pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
 &lt;$list name=refresh filter=[[tiddlerfield-norefresh.js]get[text]]&gt;
 &lt;$innerwiki width=&quot;600&quot; height=&quot;400&quot; style=&quot;width:100%;&quot;&gt;
@@ -11771,9 +11771,11 @@ The visible behavior here should be identical to the unoptimized behavior of the
     &lt;$data $tiddler=tiddlerfield-norefresh.js/&gt;
 	&lt;$data title=&quot;tiddler field widget&quot; text=&quot;&quot;&quot;
 &lt;$edit-text focus=yes tiddler=test tag=input/&gt;
-&lt;$button set=&quot;!!test&quot; setTo=&quot;hello&quot;&gt;Refresh&lt;/$button&gt;
+&lt;$button set=&quot;!!test&quot; setTo=&quot;hello&quot;&gt;Force refresh&lt;/$button&gt;
 
-    
+&lt;div&gt;
+&lt;div style=&quot;display:inline-block;width: 49%;vertical-align: text-top;word-wrap: break-word;}&quot;&gt;
+
 ```
 &lt;$tiddlerfield/&gt;
 ```
@@ -11781,12 +11783,23 @@ The visible behavior here should be identical to the unoptimized behavior of the
 Renders as:
 
 &lt;$tiddlerfield/&gt;
+&lt;/div&gt;
+&lt;div style=&quot;display:inline-block;width: 49%;vertical-align: text-top;word-wrap: break-word;}&quot;&gt;
+
+```
+&lt;$view tiddler=&quot;test&quot;/&gt;
+```
+
+Renders as:
+
+&lt;$view tiddler=&quot;test&quot;/&gt;
+&lt;/div&gt;
 &quot;&quot;&quot;/&gt;
 
 &lt;/$innerwiki&gt;
 &lt;/$list&gt;</pre>
 </div>
-<div created="20190202032354223" modified="20190202032743580" tags="" title="Widget refresh demo II">
+<div created="20190202032354223" modified="20190217005540498" tags="" title="Widget refresh demo II">
 <pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
 &lt;$list name=refresh filter=[[tiddlerfield.js]get[text]]&gt;
 &lt;$innerwiki width=&quot;600&quot; height=&quot;400&quot; style=&quot;width:100%;&quot;&gt;
@@ -11796,6 +11809,9 @@ Renders as:
 	&lt;$data title=&quot;tiddler field widget&quot; text=&quot;&quot;&quot;
 &lt;$edit-text focus=yes tiddler=test tag=input/&gt;
     
+&lt;div&gt;
+&lt;div style=&quot;display:inline-block;width: 49%;vertical-align: text-top;word-wrap: break-word;}&quot;&gt;
+
 ```
 &lt;$tiddlerfield/&gt;
 ```
@@ -11803,12 +11819,23 @@ Renders as:
 Renders as:
 
 &lt;$tiddlerfield/&gt;
+&lt;/div&gt;
+&lt;div style=&quot;display:inline-block;width: 49%;vertical-align: text-top;word-wrap: break-word;}&quot;&gt;
+
+```
+&lt;$view tiddler=&quot;test&quot;/&gt;
+```
+
+Renders as:
+
+&lt;$view tiddler=&quot;test&quot;/&gt;
+&lt;/div&gt;
 &quot;&quot;&quot;/&gt;
 
 &lt;/$innerwiki&gt;
 &lt;/$list&gt;</pre>
 </div>
-<div created="20190202122928187" modified="20190202133405288" tags="" title="Widget refresh demo III">
+<div created="20190202122928187" modified="20190216191939585" tags="" title="Widget refresh demo III">
 <pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
 &lt;$list name=refresh filter=[[refreshcount.js]get[text]]&gt;
 &lt;$innerwiki width=&quot;600&quot; height=&quot;400&quot; style=&quot;width:100%;&quot;&gt;
@@ -11837,6 +11864,7 @@ Renders as:
 
 ```
 &lt;$list filter=&quot;[[test]get[text]]&quot;&gt;
+&lt;&lt;currentTiddler&gt;&gt;&lt;br&gt;
 &lt;$refreshcount/&gt;
 &lt;/$list&gt;
 ```
@@ -11844,6 +11872,7 @@ Renders as:
 Renders as:
 
 &lt;$list filter=&quot;[[test]get[text]]&quot;&gt;
+&lt;&lt;currentTiddler&gt;&gt;&lt;br&gt;
 &lt;$refreshcount/&gt;
 &lt;/$list&gt;
 &quot;&quot;&quot;/&gt;
@@ -11853,10 +11882,10 @@ Renders as:
 &lt;/$list&gt;
 </pre>
 </div>
-<div created="20190201232847949" modified="20190202145726789" tags="" title="Widget refresh tutorial part I">
+<div created="20190201232847949" modified="20190216191049850" tags="" title="Widget refresh tutorial part I">
 <pre>But what if we want to display dynamic content? How can we display information and keep it up to date as it changes? Let's display the content of a tiddler field.
 
-The [[tiddlerfield-norefresh.js]] code is almost the same as [[hello.js]] except for this part:
+The [[tiddlerfield-norefresh.js]] which defines the `tiddlerfield` widget is almost the same as [[hello.js]] except for this part:
 
 ```javascript
 MyWidget.prototype.render = function(parent,nextSibling) {
@@ -11868,13 +11897,13 @@ MyWidget.prototype.render = function(parent,nextSibling) {
 };
 ```
 
-Instead of creating the text dom node from a static string, the text field of the `test` tiddler is used.
+Instead of creating the text dom node from a static string, the text field of the `test` tiddler is used. This is similar to using the view widget like this:  `&lt;$view tiddler=&quot;test&quot;/&gt;`
 
 Here's how it looks (see [[Widget refresh demo I]] to look at the code):
 
 {{Widget refresh demo I}}
 
-Notice if you change the text in the input box, the output from the widget doesn't change. Only after the refresh button is clicked does the output update to match the input box contents.
+Notice if you change the text in the input box, the output from the `tiddlerfield` widget doesn't change, but the output of the `view` widget does. Only after the ''Force refresh'' button is clicked does the output of `tiddlerfield` update to match the input box contents.
 
 What's going on here? The render method of the widget code is only called by tiddlywiki core when the widget is first created. After that, it isn't called again unless the widget is completely destroyed and then created again. 
 
@@ -11890,12 +11919,14 @@ This recreation takes place because the tiddlywiki ~ViewWidget which is displayi
 
 Our widget does not support automatic refresh and it won't until a `refresh` method is implemented.
 
-See the next example for that.</pre>
+The `view` widget stays in sync with the input box because it has a properly implemented `refresh` method.
+
+See the next example for an implementation of the `refresh` method for the `tiddlerfield` widget.</pre>
 </div>
-<div created="20190201232910076" modified="20190202163709721" tags="" title="Widget refresh tutorial part II">
+<div created="20190201232910076" modified="20190217005815291" tags="" title="Widget refresh tutorial part II">
 <pre>This example is like [[Widget refresh tutorial part I]] except the widget output will be automatically refreshed when the tiddler field changes.
 
-[[tiddlerfield.js]] is the same as [[tiddlerfield-norefresh.js]], except the added `refresh` method.
+[[tiddlerfield.js]] is the same as [[tiddlerfield-norefresh.js]], except this `refresh` method is added:
 
 ```javascript
 /*
@@ -11911,11 +11942,11 @@ MyWidget.prototype.refresh = function(changedTiddlers) {
 
 The `refreshSelf` method called above is implemented by the core widget class and it takes care of cleaning the old dom node and calling the render function.
 
-Here is the result:
+Here is the result ([[Widget refresh demo II]]):
 
 {{Widget refresh demo II}}
 
-And now any typing into the input box will cause the widget output to refresh immediately.
+And now any typing into the input box will cause both the `tiddlerfield` and the `view` widget output to refresh immediately.
 
 Note this is a naive version of `refresh`. It unconditionally refreshes itself. This is far from optimal since the `refresh` method for all visible widgets is called every time the tiddler store changes. But the way we've defined our widget, the output ONLY depends on the tiddler titled `text`.
 
