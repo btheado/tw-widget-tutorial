@@ -427,6 +427,8 @@ Error message and password prompt
 
 <li>Undefined widget tutorial</li>
 
+<li>Ways to get library suitable for the browser</li>
+
 <li>Widget attributes demo I</li>
 
 <li>Widget attributes demo II</li>
@@ -10787,8 +10789,143 @@ Without the need for reloads, a tiddlywiki instance with the [[innerwiki plugin|
 
 The drawback of this approach is that each innerwiki instance is an iframe containing a complete tiddlywiki instance. Since I have 6 innerwiki instances (and growing) here, loading this web page will likely be very slow.</pre>
 </div>
-<div created="20190202160512541" modified="20190202160513917" title="Child widgets tutorial">
-<pre>TODO</pre>
+<div created="20190202160512541" modified="20190222231130254" title="Child widgets tutorial">
+<pre>\define showTrees(wikitext)
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;&lt;th&gt;wiki text&lt;/th&gt;&lt;th&gt;html&lt;/th&gt;&lt;th&gt;renders as&lt;/th&gt;&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;`$wikitext$`&lt;/td&gt;
+&lt;td&gt;
+&lt;$wikify name=html text=&quot;&quot;&quot;$wikitext$&quot;&quot;&quot; output=html mode=inline&gt;
+&lt;$text text=&lt;&lt;html&gt;&gt;/&gt;
+&lt;/$wikify&gt;
+&lt;/td&gt;
+&lt;td&gt;$wikitext$&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;&lt;th&gt;parse tree&lt;/th&gt;&lt;th&gt;widget tree&lt;/th&gt;&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&quot;vertical-align: text-top&quot;&gt;
+&lt;pre&gt;&lt;code&gt;
+&lt;$wikify name=parsetree text=&quot;&quot;&quot;$wikitext$&quot;&quot;&quot; output=parsetree mode=inline&gt;
+&lt;&lt;parsetree&gt;&gt;
+&lt;/$wikify&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/td&gt;
+&lt;td style=&quot;vertical-align: text-top&quot;&gt;
+&lt;pre&gt;&lt;code&gt;
+&lt;$wikify name=widgettree text=&quot;&quot;&quot;$wikitext$&quot;&quot;&quot; output=widgettree mode=inline&gt;
+&lt;&lt;widgettree&gt;&gt;
+&lt;/$wikify&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+\end
+
+! Introduction
+
+Until now the examples have covered only simple, leaf widgets, but widgets can be arranged into a hierarchy. Compared to a leaf-only widget, widget classes which support having children must contain code to instantiate the children.
+
+Not all widgets need to support having children. Widgets whose only purpose is to integrate third party javascript libraries, for example may not need it.
+
+! wiki text ⇨ parse tree ⇨ widget tree ⇨ DOM tree
+
+# [[wiki text|https://tiddlywiki.com/#WikiText]] - Users write content in tiddlers using wiki text.
+# [[parse tree|https://tiddlywiki.com/dev/#ParsingMechanism]] - A parse tree is a JSON data structure describing the wiki text. Wiki text can be converted into a parse tree using `this.wiki.parseText`.
+# ''widget tree'' - Most items in the parse tree correspond to one or more items in the widget tree. The `this.makeChildWidgets` method is used to convert the parse tree into a widget tree.
+# [[DOM tree|https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction]] - A DOM tree is a standard javascript datastructure used by browsers to display a web page. The `this.renderChildren` method is used to instantiate the widget class and then render each widget in the widget tree. If a given widget will be visible in the browser, then one or more DOM nodes will be created.
+
+!Examples
+
+!! Simple trees without nesting
+
+[[Widgets in wiki text|https://tiddlywiki.com/#Widgets%20in%20WikiText]] have a syntax similar to html (i.e. `&lt;$list/&gt;`). But all [[wiki markup|https://tiddlywiki.com/#WikiText]] is seen by the tiddlywiki code as widgets.
+
+Even a simple string with no special syntax will be treated as a widget. In this case a widget of type `text`:
+
+&lt;&lt;showTrees &quot;&quot;&quot;hello&quot;&quot;&quot;&gt;&gt;
+
+The above bare string of text is mostly just a synonym for this widget syntax:
+
+&lt;&lt;showTrees &quot;&quot;&quot;&lt;$text text=hello/&gt;&quot;&quot;&quot;&gt;&gt;
+
+Some of the details of the parseTree and widgetTree are different in the two examples, but the general structure is the same and the rendered output is the same.
+
+In these two simple examples, there is no nesting and so no child widgets are created. 
+
+!! Trees with one level of nesting
+
+This next example shows the structure for bold wiki syntax. It is still simple, but does introduce one level of nesting: `element`→`text`
+
+The wiki syntax for bold converts to the standard html element `strong`. Any standard html element is represented in tiddlywiki as a widget of type `element`:
+
+&lt;&lt;showTrees &quot;&quot;&quot;''bold''&quot;&quot;&quot;&gt;&gt;
+
+Another example showing one level of nesting (`link`→`text`):
+
+&lt;&lt;showTrees &quot;&quot;&quot;&lt;$link to=atiddler&gt;link&lt;/$link&gt;&quot;&quot;&quot;&gt;&gt;
+
+!!Widgets with no DOM contribution
+Not all widgets contribute items to the DOM. The purpose of some widgets is to affect the display of descendant widgets by changing some state. The `$set` widget for example sets a variable which will be accessible to the descendant widgets:
+
+&lt;&lt;showTrees &quot;&quot;&quot;&lt;$set name=myvar value=hi/&gt;&quot;&quot;&quot;&gt;&gt;
+
+Nothing is rendered and there is no html, but the parse tree and widget tree contain information about the variable.
+
+!! Dynamic widget children using this.wiki.parseText
+
+In all the examples so far, there has been a close mapping between the nesting structure of the parse tree and the widget tree. If the item is in the parse tree, then it is in the widget tree. If the parse tree item has children, then the widget tree has the same number of children.
+
+However, there are several examples of widgets in which more levels of nesting are created dynamically during the widget rendering process
+
+The `$macrocall` widget is one example:
+
+&lt;&lt;showTrees &quot;&quot;&quot;&lt;$macrocall $name=now/&gt;&quot;&quot;&quot; &gt;&gt;
+
+The parse tree has just a single type=$macrocall element with no children. The widget tree has that same type=$macrocall element, but it also has a child widget which wasn't in the parse tree.
+
+In all cases, the `$macrocall` widget calls the given macro and then calls `this.wiki.parseText` on the output. This results in a new parse tree which is used to make the child widgets.
+
+In this particular case, the `now` macro is called. It returns a simple string of text, so when it is parsed the result causes the creation of a single child text widget containing the current date and time.
+
+!! Widgets which do not support nesting
+
+Just as some widgets can cause widget trees to have more nesting than the parse tree, some widgets can cause widget trees to have less nesting.
+
+This happens when there is no use for the widget to have any children. The `$text` widget, for example, has no use for displaying any descendants.
+
+This behavior is accomplished by not calling the `makeChildWidgets` method. Without that method call, the child widgets are not created from the child parse tree items. For example:
+
+&lt;$macrocall $name=showTrees wikitext=&quot;&quot;&quot;&lt;$text text=&quot;hi&quot;&gt;ignored child text&lt;/$text&gt;&quot;&quot;&quot;/&gt;
+
+Since the `$text` widget does not have a call to `makeChildWidgets`, 'ignored child text' above is present in the parse tree, but not in the widget tree.
+
+!Reference
+
+|!method|!when to call|!what it does|
+|`makeChildWidgets`|directly or indirectly from `render` method|converts child parse tree items into widget tree items|
+|`renderChildren`|directly or indirectly from `render` method, after the `makeChildWidgets` call|calls the `render` method of the child widget|
+|`refreshChildren`|directly or indirectly from `refresh` method, only needed if `refreshSelf` is not called|calls the `refresh` method of of the child widgets so they can check if refresh is needed|
+|`this.wiki.parseText`|pass the output parse tree to `makeChildWidgets`|converts the given text to a parse tree...only needed for dynamically constructed parsetree|
+
+|!example call|!purpose|!widgets using this approach|
+|`this.makeChildWidgets()`|construct child widgets from the static parse tree|[[$link|$:/core/modules/widgets/link.js]], [[$button|$:/core/modules/widgets/button.js]], etc.|
+|`this.makeChildWidgets(parseTreeNodes)`|construct child widgets from a dynamic parse tree|[[$list|$:/core/modules/widgets/list.js]], [[$transclude|$:/core/modules/widgets/transclude.js]], [[$macrocall|$:/core/modules/widgets/macrocall.js]], etc|
+|`this.renderChildren(parent, nextSibling)`|when the widget adds nothing to the dom, just pass the `render` arguments through to the children|[[$set|$:/core/modules/widgets/set.js]], [[$importvariables|$:/core/modules/widgets/importvariables.js]], [[$tiddler|$:/core/modules/widgets/tiddler.js]], [[$wikify|$:/core/modules/widgets/wikify.js]], etc.|
+|`this.renderChildren(domNode, null)`|passes the dom node generated by this widget into the children|[[$link|$:/core/modules/widgets/link.js]], [[$button|$:/core/modules/widgets/button.js]], etc|
+
+</pre>
 </div>
 <div created="20190201120100249" modified="20190201222600576" tags="" title="Do nothing widget demo">
 <pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
@@ -11598,6 +11735,20 @@ Renders as:
 {{Undefined widget demo}}
 
 Since we haven't written the code, the attempt to render the widget gives an undefined widget error. So we will know the donothing code accomplishes something if we don't get the undefined widget error when rendering.</pre>
+</div>
+<div created="20190217015903303" modified="20190217020616033" title="Ways to get library suitable for the browser">
+<pre>* npm based libraries
+** npm browserify --standalone
+** https://beta.observablehq.com/@tmcw/module-require-debugger
+***https://bundle.run/hyperscript@2.0.2
+***https://cdn.jsdelivr.net/npm/htm@2.0.0/dist/htm.umd.js
+***https://bundle.run/mermaid@8.0.0
+***
+* older libraries written only to be included using script tag
+
+`if ($tw.browser)`
+
+</pre>
 </div>
 <div created="20190204020507195" modified="20190204031520013" tags="" title="Widget attributes demo I">
 <pre>&lt;!-- The innerwiki doesn't refresh on its own when tiddlers on the outside change, so use the list widget to force a dependency --&gt;
